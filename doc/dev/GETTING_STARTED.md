@@ -40,7 +40,7 @@ sudo yum install make automake gcc gcc-c++ kernel-devel git git-lfs cmake vtk
 
 ```
 sudo pacman -Syu
-sudo pacman -S base-devel git git-lfs cmake vtk nlohmann-json hdf5 netcdf fmt verdict openmpi glew ospray boost libxcursor
+sudo pacman -S base-devel git git-lfs cmake vtk nlohmann-json hdf5 netcdf fmt verdict openmpi glew ospray libxcursor
 ```
 
 ### Compile F3D
@@ -101,8 +101,6 @@ mkdir build
 ```sh
 cd C:/dev
 git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg
-git fetch origin c9140a3b500812ad3206317885860d9553b93f13
 ```
 
  * Open cmd
@@ -113,8 +111,7 @@ cd C:\dev
 cmake -B .\f3d\build -S .\f3d\src -DCMAKE_TOOLCHAIN_FILE=C:\dev\vcpkg\scripts\buildsystems\vcpkg.cmake
 ```
 
-Note: Last command will take a while. It download, compile and install all dependencies, including
-many optional ones.
+Note: Last command will take a while. It downloads, compiles and installs VTK and its dependencies.
 
 #### Build F3D
 

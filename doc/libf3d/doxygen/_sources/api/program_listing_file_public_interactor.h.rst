@@ -40,13 +40,13 @@ Program Listing for File interactor.h
      ModifierKeys mod = ModifierKeys::NONE;
      std::string inter;
    
-     bool operator<(const interaction_bind_t& bind) const;
+     [[nodiscard]] bool operator<(const interaction_bind_t& bind) const;
    
-     bool operator==(const interaction_bind_t& bind) const;
+     [[nodiscard]] bool operator==(const interaction_bind_t& bind) const;
    
-     std::string format() const;
+     [[nodiscard]] std::string format() const;
    
-     static interaction_bind_t parse(const std::string& str);
+     [[nodiscard]] static interaction_bind_t parse(std::string_view str);
    };
    
    class F3D_EXPORT interactor
@@ -56,11 +56,11 @@ Program Listing for File interactor.h
      virtual interactor& initCommands() = 0;
    
      virtual interactor& addCommand(
-       const std::string& action, std::function<void(const std::vector<std::string>&)> callback) = 0;
+       std::string action, std::function<void(const std::vector<std::string>&)> callback) = 0;
    
      virtual interactor& removeCommand(const std::string& action) = 0;
    
-     virtual std::vector<std::string> getCommandActions() const = 0;
+     [[nodiscard]] virtual std::vector<std::string> getCommandActions() const = 0;
    
      virtual bool triggerCommand(std::string_view command) = 0;
    
@@ -83,36 +83,37 @@ Program Listing for File interactor.h
    
      virtual interactor& removeBinding(const interaction_bind_t& bind) = 0;
    
-     virtual std::vector<std::string> getBindGroups() const = 0;
+     [[nodiscard]] virtual std::vector<std::string> getBindGroups() const = 0;
    
-     virtual std::vector<interaction_bind_t> getBindsForGroup(std::string group) const = 0;
+     [[nodiscard]] virtual std::vector<interaction_bind_t> getBindsForGroup(
+       std::string group) const = 0;
    
-     virtual std::vector<interaction_bind_t> getBinds() const = 0;
+     [[nodiscard]] virtual std::vector<interaction_bind_t> getBinds() const = 0;
    
-     virtual std::pair<std::string, std::string> getBindingDocumentation(
+     [[nodiscard]] virtual std::pair<std::string, std::string> getBindingDocumentation(
        const interaction_bind_t& bind) const = 0;
    
-     virtual unsigned long createTimerCallBack(double time, std::function<void()> callBack) = 0;
    
-     virtual void removeTimerCallBack(unsigned long id) = 0;
-   
-   
-     virtual void toggleAnimation() = 0;
-     virtual void startAnimation() = 0;
-     virtual void stopAnimation() = 0;
-     virtual bool isPlayingAnimation() = 0;
+     virtual interactor& toggleAnimation() = 0;
+     virtual interactor& startAnimation() = 0;
+     virtual interactor& stopAnimation() = 0;
+     [[nodiscard]] virtual bool isPlayingAnimation() = 0;
    
    
-     virtual void enableCameraMovement() = 0;
-     virtual void disableCameraMovement() = 0;
+     virtual interactor& enableCameraMovement() = 0;
+     virtual interactor& disableCameraMovement() = 0;
    
-     virtual bool playInteraction(const std::string& file) = 0;
+     virtual bool playInteraction(const std::filesystem::path& file, double deltaTime = 1.0 / 30,
+       std::function<void()> userCallBack = nullptr) = 0;
    
-     virtual bool recordInteraction(const std::string& file) = 0;
+     virtual bool recordInteraction(const std::filesystem::path& file) = 0;
    
-     virtual void start() = 0;
+     virtual interactor& start(
+       double deltaTime = 1.0 / 30, std::function<void()> userCallBack = nullptr) = 0;
    
-     virtual void stop() = 0;
+     virtual interactor& stop() = 0;
+   
+     virtual interactor& requestRender() = 0;
    
      struct already_exists_exception : public exception
      {
@@ -170,7 +171,7 @@ Program Listing for File interactor.h
    }
    
    //----------------------------------------------------------------------------
-   inline interaction_bind_t interaction_bind_t::parse(const std::string& str)
+   inline interaction_bind_t interaction_bind_t::parse(std::string_view str)
    {
      interaction_bind_t bind;
      auto plusIt = str.find_last_of('+');
@@ -182,7 +183,7 @@ Program Listing for File interactor.h
      {
        bind.inter = str.substr(plusIt + 1);
    
-       std::string modStr = str.substr(0, plusIt);
+       std::string_view modStr = str.substr(0, plusIt);
        if (modStr == "Ctrl+Shift")
        {
          bind.mod = ModifierKeys::CTRL_SHIFT;

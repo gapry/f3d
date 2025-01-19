@@ -16,6 +16,7 @@ Program Listing for File utils.h
    #include "exception.h"
    #include "export.h"
    
+   #include <filesystem>
    #include <map>
    #include <regex>
    #include <sstream>
@@ -27,11 +28,14 @@ Program Listing for File utils.h
    class F3D_EXPORT utils
    {
    public:
-     static unsigned int textDistance(const std::string& strA, const std::string& strB);
+     [[nodiscard]] static unsigned int textDistance(std::string_view strA, std::string_view strB);
    
      // clang-format off
-     static std::vector<std::string> tokenize(std::string_view str);
+     [[nodiscard]] static std::vector<std::string> tokenize(std::string_view str);
      // clang-format on
+   
+     [[nodiscard]] static std::filesystem::path collapsePath(
+       const std::filesystem::path& path, const std::filesystem::path& baseDirectory = {});
    
      struct tokenize_exception : public exception
      {
@@ -50,9 +54,9 @@ Program Listing for File utils.h
    
        string_template& substitute(const std::map<std::string, std::string>& lookup);
    
-       std::string str() const;
+       [[nodiscard]] std::string str() const;
    
-       std::vector<std::string> variables() const;
+       [[nodiscard]] std::vector<std::string> variables() const;
    
        struct lookup_error : public std::out_of_range
        {

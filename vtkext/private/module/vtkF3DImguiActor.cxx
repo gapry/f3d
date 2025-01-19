@@ -1,6 +1,7 @@
 #include "vtkF3DImguiActor.h"
 
 #include "F3DFontBuffer.h"
+#include "vtkF3DImguiConsole.h"
 #include "vtkF3DImguiFS.h"
 #include "vtkF3DImguiVS.h"
 
@@ -245,6 +246,8 @@ void vtkF3DImguiActor::Initialize(vtkOpenGLRenderWindow* renWin)
   ImGui::SetCurrentContext(ctx);
 
   ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
 
   ImFontConfig fontConfig;
 
@@ -262,6 +265,7 @@ void vtkF3DImguiActor::Initialize(vtkOpenGLRenderWindow* renWin)
 
   io.Fonts->Build();
   io.FontDefault = font;
+  io.FontGlobalScale = this->FontScale;
 
   ImGuiStyle* style = &ImGui::GetStyle();
   style->GrabRounding = 4.0f;
@@ -276,6 +280,8 @@ void vtkF3DImguiActor::Initialize(vtkOpenGLRenderWindow* renWin)
 //----------------------------------------------------------------------------
 void vtkF3DImguiActor::ReleaseGraphicsResources(vtkWindow* w)
 {
+  this->Superclass::ReleaseGraphicsResources(w);
+
   this->Pimpl->Release(vtkOpenGLRenderWindow::SafeDownCast(w));
 }
 
@@ -285,22 +291,25 @@ vtkF3DImguiActor::~vtkF3DImguiActor() = default;
 //----------------------------------------------------------------------------
 void vtkF3DImguiActor::RenderFileName()
 {
-  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (!this->FileName.empty())
+  {
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-  constexpr float marginTop = 5.f;
-  ImVec2 winSize = ImGui::CalcTextSize(this->FileName.c_str());
-  winSize.x += 2.f * ImGui::GetStyle().WindowPadding.x;
-  winSize.y += 2.f * ImGui::GetStyle().WindowPadding.y;
+    constexpr float marginTop = 5.f;
+    ImVec2 winSize = ImGui::CalcTextSize(this->FileName.c_str());
+    winSize.x += 2.f * ImGui::GetStyle().WindowPadding.x;
+    winSize.y += 2.f * ImGui::GetStyle().WindowPadding.y;
 
-  ::SetupNextWindow(ImVec2(viewport->GetWorkCenter().x - 0.5f * winSize.x, marginTop), winSize);
-  ImGui::SetNextWindowBgAlpha(0.35f);
+    ::SetupNextWindow(ImVec2(viewport->GetWorkCenter().x - 0.5f * winSize.x, marginTop), winSize);
+    ImGui::SetNextWindowBgAlpha(0.35f);
 
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings |
-    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
 
-  ImGui::Begin("FileName", nullptr, flags);
-  ImGui::TextUnformatted(this->FileName.c_str());
-  ImGui::End();
+    ImGui::Begin("FileName", nullptr, flags);
+    ImGui::TextUnformatted(this->FileName.c_str());
+    ImGui::End();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -413,6 +422,20 @@ void vtkF3DImguiActor::RenderFpsCounter()
 }
 
 //----------------------------------------------------------------------------
+void vtkF3DImguiActor::RenderConsole()
+{
+  vtkF3DImguiConsole* console = vtkF3DImguiConsole::SafeDownCast(vtkOutputWindow::GetInstance());
+  console->ShowConsole();
+}
+
+//----------------------------------------------------------------------------
+void vtkF3DImguiActor::RenderConsoleBadge()
+{
+  vtkF3DImguiConsole* console = vtkF3DImguiConsole::SafeDownCast(vtkOutputWindow::GetInstance());
+  console->ShowBadge();
+}
+
+//----------------------------------------------------------------------------
 void vtkF3DImguiActor::StartFrame(vtkOpenGLRenderWindow* renWin)
 {
   if (ImGui::GetCurrentContext() == nullptr)
@@ -435,4 +458,11 @@ void vtkF3DImguiActor::EndFrame(vtkOpenGLRenderWindow* renWin)
 {
   ImGui::Render();
   this->Pimpl->RenderDrawData(renWin, ImGui::GetDrawData());
+}
+
+//----------------------------------------------------------------------------
+void vtkF3DImguiActor::SetDeltaTime(double time)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.DeltaTime = time;
 }
